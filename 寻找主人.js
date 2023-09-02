@@ -6,7 +6,7 @@ export class FindMaster extends plugin {
         super({
             //后端信息
             name: '寻找主人',//插件名字，可以随便写
-            dsc: '帮助迷路的机器人寻找失踪的主人||帮助hentai主人宣示主权',//插件介绍，可以随便写
+            dsc: '帮助迷路的机器人寻找失踪的主人&&帮助hentai主人宣示主权',//插件介绍，可以随便写
             event: 'message',//这个直接复制即可，别乱改
             priority: 2000,//执行优先级：数值越低越6
             rule: [
