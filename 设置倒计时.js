@@ -9,15 +9,15 @@ export class countdown extends plugin {
             priority: 4096,
             rule: [
                 {
-                    reg: "^#?(.*)?(小时)?(.*)?(分钟)后叫我$",
+                    reg: "^#(.*)(小时)?(.*)(分钟)?后叫我(.*)",
                     fnc: "countdown"
                 }
             ]
         })
     }
-    async call(e){
+    async call(e,action){
     
-        await e.reply(`时间到啦！`, true, { at: true })
+        await e.reply(`时间到啦！${action}!`, true, { at: true })
     }
     async countdown(e){
     
@@ -29,7 +29,9 @@ export class countdown extends plugin {
 
         let delay = (hour*60 + minute)*60*1000
 
-        await this.e.reply(`好的，${hour}小时${minute}分钟后叫你`, true, { at: true })
-        setTimeout(this.call,delay,e)
+        let action = e.msg.replace(/#(.*)(小时)?(.*)(分钟)?后叫我/,"")
+
+        await this.e.reply(`好的，${hour}小时${minute}分钟后叫你${action}`, true, { at: true })
+        setTimeout(this.call,delay,e,action)
     }
 }
