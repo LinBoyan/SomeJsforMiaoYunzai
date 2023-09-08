@@ -11,8 +11,6 @@ export class ProtectOwner extends plugin {
   };
   async accept (e){
     if(this.e.isMaster)
-    await e.group.muteMember(
-        e.user_id, 0
-      )
+    await e.group.muteMember(e.user_id, 0)
   }
 }
