@@ -29,13 +29,13 @@ export class FindMaster extends plugin {
                     e.reply([
                         segment.at(+Cfg.masterQQ[i]),
                         segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${Cfg.masterQQ[i]}&spec=640&img_type=jpg`),
-                        "\n主人快来！！"],1)
+                        "\n主人快来！"])
             else
                 for (let i = 0; i < MasterID.length; i++)
                     e.reply([
                     segment.at(+MasterID[i]),
                     segment.image(`http://q.qlogo.cn/headimg_dl?dst_uin=${MasterID[i]}&spec=640&img_type=jpg`),
-                    "\n主人快来！！！"],1)
+                    "\n主人快来！"])
         return true;}
     }
 }
