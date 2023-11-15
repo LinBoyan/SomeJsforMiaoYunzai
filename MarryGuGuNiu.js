@@ -1,4 +1,4 @@
-import { exec } from "child_process"
+import { exec, execSync } from "child_process"
 
 let url = `https://mirror.ghproxy.com/https://github.com/GuGuNiu/Miao-Plugin-MBT`
 let Path = `./resources/Miao-Plugin-MBT/`
@@ -18,7 +18,7 @@ export class marry_GuGuNiu extends plugin {
                     permission: "master"
                 },
                 {
-                    reg: /^#更新咕咕牛图包$/,
+                    reg: /^#(强制)?更新咕咕牛图包$/,
                     fnc: 'update_GuGuNiu',
                     permission: "master"
                 },
@@ -34,20 +34,21 @@ export class marry_GuGuNiu extends plugin {
     async download_GuGuNiu(e) {
         await e.reply(`开始下载${url}`)
         cmd = `git clone --depth=1 ${url} ${Path}`
-        exec(cmd, { cwd: Path, stdio: 'inherit' }, (error) => {
+        exec(cmd, { cwd: process.cwd(), stdio: 'inherit' }, (error) => {
             if (error) return e.reply(`下载错误：\n${error}`)
-            else e.reply(`下载完成`)
+            else {e.reply(`下载完成`);this.apply_GuGuNiu(e)}
         })
 
         await e.reply(`下载中，耐心等待，保存路径${Path}`)
     }
 
     async update_GuGuNiu(e) {
-        await e.reply(`开始更新图包`)
         cmd = `git pull`
-        exec(cmd, { cwd: process.cwd(), stdio: 'inherit' }, (output, error) => {
+        if (this.e.msg.includes('强制'))
+            execSync('git fetch && git reset --hard', { cwd: Path})
+        exec(cmd, { cwd: Path, stdio: 'inherit' }, (output, error) => {
             if (error) return e.reply(`更新错误：\n${error}`)
-            else e.reply(`更新完成：${output}`)
+            else {e.reply(`更新完成：${output}`);this.apply_GuGuNiu(e)}
         })
 
         await e.reply(`更新中，耐心等待，保存路径${Path}`)
