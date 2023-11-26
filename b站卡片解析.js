@@ -1,6 +1,6 @@
 import fetch from "node-fetch"
 const card = true //是否解析卡片
-const base_duration = 60 //单位s，视频分辨率分级的基准。-1代表交给土块解析。0代表不分级，永远最高画质。默认值60s时，1分钟以内视频最高4K，3分钟以内1080p，5分钟以内720p，13分钟以上不解析
+let base_duration = 60 //单位s，视频分辨率分级的基准。-1代表交给土块解析。0代表不分级，永远最高画质。默认值60s时，1分钟以内视频最高4K，3分钟以内1080p，5分钟以内720p，13分钟以上不解析
 const cookie = "" //b站cookie，留空则最高360p，推荐via浏览器无痕模式获取
 export class Bili_Down extends plugin {
     constructor() {
@@ -30,7 +30,7 @@ export class Bili_Down extends plugin {
         if (e.message[0].type == 'json' && card == true) {
             let obj = JSON.parse(e.message[0].data); // 解析JSON字符串
             // 提取jumpUrl内容
-            let jumpUrl = obj.meta.news.jumpUrl;
+            let jumpUrl = obj.meta.news?.jumpUrl || obj.meta.detail_1?.qqdocurl;
             e.msg = jumpUrl
         }
         if(base_duration == -1)
@@ -70,7 +70,6 @@ export class Bili_Down extends plugin {
     async get_video_url(bv, cid, duration){
         duration = Math.floor(duration / base_duration)
         if(base_duration == 0) duration = 0
-        this.reply(duration);
         let qn
         switch(duration){
         case 0: qn = 120; break;
