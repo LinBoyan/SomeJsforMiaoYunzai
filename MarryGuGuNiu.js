@@ -1,7 +1,7 @@
 import { exec, execSync } from "child_process"
 
-let url = `https://mirror.ghproxy.com/https://github.com/GuGuNiu/Miao-Plugin-MBT`
-let Path = `./resources/Miao-Plugin-MBT/`
+let url = `https://github.com/GuGuNiu/Miao-Plugin-MBT` //项目地址可自行更改
+let Path = `./resources/Miao-Plugin-MBT/` //存放位置
 let cmd = ""
 
 export class marry_GuGuNiu extends plugin {
