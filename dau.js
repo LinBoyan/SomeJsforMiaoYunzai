@@ -5,10 +5,18 @@ const groupPath = './plugins/example/group_id.yaml'
 const userPath = './plugins/example/user_id.yaml'
 const days = 7
 
-let data
-data = fs.readFileSync(userPath, 'utf8');
+let data = ''
+if (fs.existsSync(userPath))
+    data = fs.readFileSync(userPath, 'utf8');
+else{
+    fs.writeFileSync(userPath, data, 'utf8');
+}
 let user_list = yaml.parse(data) || {};
-data = fs.readFileSync(groupPath, 'utf8');
+if (fs.existsSync(groupPath))
+    data = fs.readFileSync(groupPath, 'utf8');
+else{
+    fs.writeFileSync(groupPath, data, 'utf8');
+}
 let group_list = yaml.parse(data) || {};
 
 export class dau extends plugin {
@@ -20,7 +28,7 @@ export class dau extends plugin {
             priority: -1000005,
             rule: [
                 {
-                    reg: "^#?dau$",
+                    reg: "^#?(qqbot)?dau$",
                     fnc: "dau_read",
                 },
                 {
@@ -28,11 +36,15 @@ export class dau extends plugin {
                     fnc: "dau_write",
                     log: false
                 },
+                {
+                    reg: "^#?(查看)?主用户$",
+                    fnc: "mainUserId",
+                }
             ]
         })
     }
     async dau_write (e){
-      if(e.adapter != 'QQBot' )
+      if(e.adapter != 'QQBot' && e.adapter != 'QQGuild')
         return false
       else {
         const today = new Date().toLocaleDateString(); // 获取今天的日期
@@ -50,8 +62,11 @@ export class dau extends plugin {
             yamlString = yaml.stringify(user_list);
             fs.writeFileSync(userPath, yamlString, 'utf8');
         }
-        if (!group_list[today].includes(e.group_id)) {
-            group_list[today].push(e.group_id);
+        let group_id
+        group_id = e.guild_id || e.group_id
+        console.log(group_id)
+        if (!group_list[today].includes(group_id)) {
+            group_list[today].push(group_id);
             yamlString = yaml.stringify(group_list);
             fs.writeFileSync(groupPath, yamlString, 'utf8');
         }
@@ -76,5 +91,12 @@ export class dau extends plugin {
           }
         e.reply(`${yaml.stringify(userCounts)}\n${day}日平均：${Math.floor(user_sum/day)}人 ${Math.floor(group_sum/day)}群`)
         this.dau_write(e)
+    }
+
+    mainUserId (e){
+        if(e.mainUserId === undefined)
+            this.reply(`尚未绑定到主用户或已是主用户。\n\n如需开始绑定流程，请向 已经绑定您的ck等信息的机器人 或使用 已经绑定您的ck等信息的QQ 发送 #绑定用户\n如需绑定uid等信息，请直接发送 #扫码登录 或 #原神绑定123456789`)
+        else
+            this.reply(`主用户：${e.mainUserId}`)
     }
 }
