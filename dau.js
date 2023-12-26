@@ -47,13 +47,11 @@ export class dau extends plugin {
         let yamlString
         if (!user_list[today].includes(e.user_id)) {
             user_list[today].push(e.user_id);
-            console.log(user_list)
             yamlString = yaml.stringify(user_list);
             fs.writeFileSync(userPath, yamlString, 'utf8');
         }
         if (!group_list[today].includes(e.group_id)) {
             group_list[today].push(e.group_id);
-            console.log(group_list)
             yamlString = yaml.stringify(group_list);
             fs.writeFileSync(groupPath, yamlString, 'utf8');
         }
