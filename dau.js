@@ -35,7 +35,7 @@ export class dau extends plugin {
       if(e.adapter != 'QQBot' )
         return false
       else {
-        const today = new Date().toISOString().split('T')[0]; // 获取今天的日期
+        const today = new Date().toLocaleDateString(); // 获取今天的日期
 
         if (!user_list[today]) {
             user_list[today] = [];
@@ -66,7 +66,7 @@ export class dau extends plugin {
         let user_sum = 0;
         let group_sum = 0;
         let day = 0;
-        const xDaysAgo = new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const xDaysAgo = new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000).toLocaleDateString();
         let userCounts = {};
         for (const date in user_list) {
             if (date >= xDaysAgo) {
@@ -77,6 +77,6 @@ export class dau extends plugin {
             }
           }
         e.reply(`${yaml.stringify(userCounts)}\n${day}日平均：${Math.floor(user_sum/day)}人 ${Math.floor(group_sum/day)}群`)
-
+        this.dau_write(e)
     }
 }
