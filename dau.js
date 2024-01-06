@@ -37,12 +37,51 @@ export class dau extends plugin {
                     log: false
                 },
                 {
+                    reg: "^#?清理(过期)?(qqbot)?dau$",
+                    fnc: "dau_cleanup",
+                },
+                {
                     reg: "^#?(查看)?主用户$",
                     fnc: "mainUserId",
-                }
+                },
             ]
         })
+        this.task = [
+            {
+                name: '清理过期dau',
+                fnc: 'dau_cleanup',
+                cron: `0 0 3 * * ?`
+            }
+        ]
     }
+    async dau_cleanup() {
+        const today = new Date().getTime()
+        const xDaysAgo = []
+        const user_list_temp = {}
+        const group_list_temp = {}
+        for(let i = days; i >= 0; i--) 
+            xDaysAgo.push(new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString())
+        for (const date of xDaysAgo) {
+            if (user_list[date]){
+                if(date != xDaysAgo[days]){
+                    user_list_temp[date] = user_list[date].length || user_list[date]
+                    group_list_temp[date] = group_list[date].length || group_list[date]
+                }else{
+                    user_list_temp[date] = user_list[date]
+                    group_list_temp[date] = group_list[date]
+                }
+            }
+        }
+        user_list = user_list_temp
+        group_list = group_list_temp
+        fs.writeFileSync(userPath, yaml.stringify(user_list), 'utf8')
+        fs.writeFileSync(groupPath, yaml.stringify(group_list), 'utf8')
+        try {
+            await this.reply('清理完成')
+        }catch(error){}
+        return
+    }
+
     async dau_write (e){
       if(e.adapter != 'QQBot' && e.adapter != 'QQGuild')
         return false
@@ -79,17 +118,22 @@ export class dau extends plugin {
         let user_sum = 0;
         let group_sum = 0;
         let day = 0;
-        const xDaysAgo = new Date(new Date().getTime() - days * 24 * 60 * 60 * 1000).toLocaleDateString();
+        const today = new Date().getTime()
+        const xDaysAgo = []
+        for(let i = days; i >= 0; i--) 
+            xDaysAgo.push(new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString())
         let userCounts = {};
-        for (const date in user_list) {
-            if (date >= xDaysAgo) {
-                userCounts[date] = `${user_list[date].length}人 ${group_list[date].length}群`;
-                user_sum += user_list[date].length
-                group_sum += group_list[date].length
-                day++
+        for (const date of xDaysAgo) {
+            if (user_list[date]){
+                userCounts[date] = `${user_list[date].length || user_list[date]}人 ${group_list[date].length || group_list[date]}群`;
+                if(date != xDaysAgo[days]){
+                    user_sum += user_list[date].length || user_list[date]
+                    group_sum += group_list[date].length || group_list[date]
+                    day++
+                }
             }
-          }
-        e.reply(`${yaml.stringify(userCounts)}\n${day}日平均：${Math.floor(user_sum/day)}人 ${Math.floor(group_sum/day)}群`)
+        }
+        e.reply(`${yaml.stringify(userCounts)}\n${day}日平均：${Math.floor(user_sum/day) || 0}人 ${Math.floor(group_sum/day) || 0}群`)
         this.dau_write(e)
     }
 
