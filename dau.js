@@ -55,25 +55,18 @@ export class dau extends plugin {
         ]
     }
     async dau_cleanup() {
-        const today = new Date().getTime()
-        const xDaysAgo = []
-        const user_list_temp = {}
-        const group_list_temp = {}
-        for(let i = days; i >= 0; i--) 
-            xDaysAgo.push(new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString())
-        for (const date of xDaysAgo) {
+        const today = new Date().toLocaleDateString()
+        for (const date in user_list) {
             if (user_list[date]){
-                if(date != xDaysAgo[days]){
-                    user_list_temp[date] = user_list[date].length || user_list[date]
-                    group_list_temp[date] = group_list[date].length || group_list[date]
+                if(date != today){
+                    user_list[date] = user_list[date].length || user_list[date]
+                    group_list[date] = group_list[date].length || group_list[date]
                 }else{
-                    user_list_temp[date] = user_list[date]
-                    group_list_temp[date] = group_list[date]
+                    user_list[date] = user_list[date]
+                    group_list[date] = group_list[date]
                 }
             }
         }
-        user_list = user_list_temp
-        group_list = group_list_temp
         fs.writeFileSync(userPath, yaml.stringify(user_list), 'utf8')
         fs.writeFileSync(groupPath, yaml.stringify(group_list), 'utf8')
         try {
