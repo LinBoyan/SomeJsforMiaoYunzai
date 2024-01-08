@@ -46,13 +46,12 @@ export class dau extends plugin {
                 },
             ]
         })
-        this.task = [
-            {
-                name: '清理过期dau',
-                fnc: 'dau_cleanup',
-                cron: `0 0 3 * * ?`
-            }
-        ]
+        this.task = {
+            name: '清理过期dau',
+            fnc: () => this.dau_cleanup(),
+            cron: `0 3 * * *`
+        }
+        
     }
     async dau_cleanup() {
         const today = new Date().toLocaleDateString()
