@@ -3,7 +3,9 @@ import yaml from 'yaml'
 
 const groupPath = './plugins/example/group_id.yaml'
 const userPath = './plugins/example/user_id.yaml'
-const days = 7
+const calcDays = 30 //计算天数
+const days = 7 //显示天数
+const sbtxOnly = true //仅统计官方机器人数据
 
 let data = ''
 if (fs.existsSync(userPath))
@@ -75,7 +77,7 @@ export class dau extends plugin {
     }
 
     async dau_write (e){
-      if(e.adapter != 'QQBot' && e.adapter != 'QQGuild')
+      if(sbtxOnly && e.adapter != 'QQBot' && e.adapter != 'QQGuild')
         return false
       else {
         const today = new Date().toLocaleDateString(); // 获取今天的日期
@@ -112,13 +114,20 @@ export class dau extends plugin {
         let day = 0;
         const today = new Date().getTime()
         const xDaysAgo = []
-        for(let i = days; i >= 0; i--) 
-            xDaysAgo.push(new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString())
+        const displayDays = []
+        for(let i = calcDays; i >= 0; i--) {
+            const dayNow = new Date(today - i * 24 * 60 * 60 * 1000).toLocaleDateString()
+            xDaysAgo.push(dayNow)
+            if(i < days)
+                displayDays.push(dayNow)
+        }
+        const dayNow = new Date(today).toLocaleDateString()
         let userCounts = {};
         for (const date of xDaysAgo) {
             if (user_list[date]){
-                userCounts[date] = `${user_list[date].length || user_list[date]}人 ${group_list[date].length || group_list[date]}群`;
-                if(date != xDaysAgo[days]){
+                if(displayDays.includes(date))
+                    userCounts[date] = `${user_list[date].length || user_list[date]}人 ${group_list[date].length || group_list[date]}群`;
+                if(date != dayNow){
                     user_sum += user_list[date].length || user_list[date]
                     group_sum += group_list[date].length || group_list[date]
                     day++
