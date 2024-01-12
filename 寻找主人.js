@@ -17,14 +17,13 @@ export class find_Master extends plugin {
     async like(e) {
         const msg = []
         msg.push(`我的主人是`)
-        let firstMaster = false
         for(let master of Cfg.masterQQ) 
             switch (e?.adapter){
                 case undefined: if(typeof master == "number") msg.push(segment.at(+master)); break;
                 case 'WeXin':
                 case 'ComWeChat': if(typeof master == "string" && master.match(/^wxid_/)) msg.push(segment.at(master)); break;
                 case 'QQGuild': if(typeof master == "string" && master.match(/^qg_/)) msg.push(segment.at(master)); break;
-                case 'QQBot': if(typeof master == "string" && master.match(`${e.self_id}-`)) {msg.push(`<@${master.replace(`${e.self_id}-`,'')}>`);firstMaster = true}; break;
+                case 'QQBot': if(typeof master == "string" && master.match(`${e.self_id}-`)) msg.push(`<@${master.replace(`${e.self_id}-`,'')}>`); break;
                 default: break;
             }
         if(msg == `我的主人是`)
