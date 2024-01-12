@@ -8,7 +8,7 @@ export class find_Master extends plugin {
             priority: -1000,
             rule: [
                 {
-                    reg: '^你主人是谁$',
+                    reg: '^#?你主人是谁$',
                     fnc: 'like'
                 }
             ]
@@ -17,25 +17,16 @@ export class find_Master extends plugin {
     async like(e) {
         const msg = []
         msg.push(`我的主人是`)
-        //普通qq机器人
-        if(typeof e.user_id === "number")
-            for(let i=0;i<Cfg.masterQQ.length;i++)
-                if(typeof Cfg.masterQQ[i] === "number")
-                    msg.push(segment.at(+Cfg.masterQQ[i]));
-                else;
-        //PC微信
-        else if(e.user_id.match(/wxid_/))
-            for(let i=0;i<Cfg.masterQQ.length;i++)
-                    if(typeof Cfg.masterQQ[i] === "string" && Cfg.masterQQ[i].match(/wxid_/))
-                        msg.push(segment.at(Cfg.masterQQ[i]));
-                    else;
-        //QQ频道Bot
-        else if(e.user_id.match(/qg_/))
-            for(let i=0;i<Cfg.masterQQ.length;i++)
-                if(typeof Cfg.masterQQ[i] === "string" && Cfg.masterQQ[i].match(/qg_/))
-                    msg.push(segment.at(Cfg.masterQQ[i]));
-                else;
-        else;
+        let firstMaster = false
+        for(let master of Cfg.masterQQ) 
+            switch (e?.adapter){
+                case undefined: if(typeof master == "number") msg.push(segment.at(+master)); break;
+                case 'WeXin':
+                case 'ComWeChat': if(typeof master == "string" && master.match(/^wxid_/)) msg.push(segment.at(master)); break;
+                case 'QQGuild': if(typeof master == "string" && master.match(/^qg_/)) msg.push(segment.at(master)); break;
+                case 'QQBot': if(typeof master == "string" && master.match(`${e.self_id}-`)) {msg.push(`<@${master.replace(`${e.self_id}-`,'')}>`);firstMaster = true}; break;
+                default: break;
+            }
         if(msg == `我的主人是`)
             await this.reply("暂无主人或不支持的适配器")
         else
