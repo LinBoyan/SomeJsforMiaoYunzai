@@ -1,7 +1,6 @@
 let form = {}
 import fs from 'fs'
 import yaml from 'yaml'
-const authors = ['岩浆']
 const folderPath = './plugins/example/' //数据存放路径
 const prefix = '' //野生机器人前缀
 const Delay_ms = 2000 //指令延时
