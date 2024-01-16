@@ -5,8 +5,8 @@ const authors = ['岩浆']
 const folderPath = './plugins/example/' //数据存放路径
 const prefix = '' //野生机器人前缀
 const Delay_ms = 2000 //指令延时
-const group = 514170328 //触发的群聊
-const QQBot_qq = 2854216359 //官方机器人qq号
+const group = 51417 //触发的群聊
+const QQBot_qq = 2854 //官方机器人qq号
 
 import { IdtoQQ} from './绑定openid.js'
 
