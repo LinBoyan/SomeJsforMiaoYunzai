@@ -5,8 +5,10 @@ const authors = ['岩浆']
 const folderPath = './plugins/example/' //数据存放路径
 const prefix = '' //野生机器人前缀
 const Delay_ms = 2000 //指令延时
-const group = 514170328
-const QQBot_qq = 2854216359
+const group = 514170328 //触发的群聊
+const QQBot_qq = 2854216359 //官方机器人qq号
+
+import { IdtoQQ} from './绑定openid.js'
 
 export class OpenIdtoId extends plugin {
   constructor () {
@@ -14,7 +16,7 @@ export class OpenIdtoId extends plugin {
       name: '取qq号',
       dsc: '复读用户发送的内容，然后撤回',
       event: 'message',
-      priority: -50001,
+      priority: -1000011,
       rule: [
         {
           reg: '^#?开始转换(qq|QQ)号$',
@@ -29,10 +31,6 @@ export class OpenIdtoId extends plugin {
           reg: '^#?启动对应转换',
           fnc: 'startOpenid'
         },
-        {
-          reg: '^#?身份查询',
-          fnc: 'transformer'
-        },
       ]
     })
     this.task = {
@@ -44,27 +42,6 @@ export class OpenIdtoId extends plugin {
 
   async startOpenid () {
     Bot.pickGroup(group).sendMsg([segment.at(QQBot_qq),'开始转换qq号'])
-  }
-
-  async transformer (e) {
-    let search_id  = e.msg.replace(/^#?身份查询/,'').replace(/ /g, '')
-    let openid
-    if (fs.existsSync(`${folderPath}QQBotRelation/${e.self_id}.yaml`))
-      form = yaml.parse(fs.readFileSync(`${folderPath}QQBotRelation/${e.self_id}.yaml`, 'utf8'))
-    if (search_id.match(`${e.self_id}-`)) {
-      if(form[search_id]?.qq)
-        openid = search_id
-    }
-    else {
-      for (let User in form)
-        if (form[User].qq == (+search_id))
-          openid = User
-    }
-    if (openid == undefined) 
-      this.reply(`暂未收录`)
-    else 
-      this.reply(`\r#身份查询 结果\r\rUserID: ${openid}\r\r>QQ: ${form[openid].qq}\r\r>昵称: ${form[openid].nickname}`)
-    return
   }
 
   async sendOpenid (e){
@@ -107,6 +84,7 @@ export class OpenIdtoId extends plugin {
     if (e.msg.match(/对应关系发送完成/)){
       logger.mark(form)
       const Botid = e.msg.replace(/对应关系发送完成/,'')
+      IdtoQQ[Botid] = form
       const filePath = `${folderPath}QQBotRelation/${Botid}.yaml`
       fs.writeFileSync(filePath, yaml.stringify(form), 'utf8')
       this.reply(`写入对应关系${filePath}`)
