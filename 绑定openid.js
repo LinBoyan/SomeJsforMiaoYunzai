@@ -38,8 +38,8 @@ export class OpenIdtoId extends plugin {
     if (IdtoQQ[e.self_id])
       if(IdtoQQ[e.self_id][e.user_id]){
         this.e.sender.user_id = IdtoQQ[e.self_id][e.user_id]?.qq
-        this.e.sender.nickname = IdtoQQ[e.self_id][e.user_id]?.nickname
-        this.e.sender.card = IdtoQQ[e.self_id][e.user_id]?.nickname
+        this.e.sender.nickname = `${IdtoQQ[e.self_id][e.user_id]?.nickname.replace(/\\/g, '')}`
+        this.e.sender.card = `${IdtoQQ[e.self_id][e.user_id]?.nickname.replace(/\\/g, '')}`
       }
     return false
   }
@@ -80,6 +80,8 @@ export class OpenIdtoId extends plugin {
       this.reply(`请输入qq号和昵称`)
       return
     }
+    if(!IdtoQQ[e.self_id])
+      IdtoQQ[e.self_id] = {}
     IdtoQQ[e.self_id][e.user_id] = {}
     IdtoQQ[e.self_id][e.user_id].qq = qq
     IdtoQQ[e.self_id][e.user_id].nickname = nickname
