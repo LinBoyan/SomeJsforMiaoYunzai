@@ -1,14 +1,22 @@
-import fs from 'fs'
-import yaml from 'yaml'
-const folderPath = './plugins/example/' //数据存放路径
+import Openid from '../22009-plugin/model/openid.js'
 const prefix = '' //野生机器人前缀
-const Delay_ms = 2000 //指令延时
-const group = 51417 //触发的群聊
-const QQBot_qq = 2854 //官方机器人qq号
+const Delay_ms = 100 //指令延时
+const group = 531683972 //触发的群聊
+const QQBot_qq = {'102073196': 2854216359} //官方机器人qq号
 
-import { IdtoQQ} from './绑定openid.js'
+/** 另外起一个监听器，直接源头监听QQBot */
+Bot.on('message', async data => {
+  if (data.self_id in QQBot_qq){
+    const user_id = data.user_id
+    const user = await Openid.User.findOne({ where: { user_id, self_id: data.self_id } })
+    if (!user || user.qq == 8888)
+      try{
+        Bot.pickGroup(group).sendMsg([segment.at(QQBot_qq[data.self_id]),`自动转换qq号${user_id}`])
+      } catch (error) {}}
+  return
+})
 
-export class OpenIdtoId extends plugin {
+export class autoOpenIdtoId extends plugin {
   constructor () {
     super({
       name: '取qq号',
@@ -17,7 +25,7 @@ export class OpenIdtoId extends plugin {
       priority: -1000011,
       rule: [
         {
-          reg: '^#?开始转换(qq|QQ)号$',
+          reg: /^#?开始更新qq号$/i,
           fnc: 'sendOpenid',
         },
         {
@@ -28,18 +36,10 @@ export class OpenIdtoId extends plugin {
           reg: '^#?启动对应转换',
           fnc: 'startOpenid'
         },
-        /* 注释下述正则，关闭自动转换，仅使用定时转换 */
-        /*
         {
           reg: '^#?自动转换(qq|QQ)号',
           fnc: 'sendOpenid_auto',
         },
-        {
-          reg: "",
-          fnc: "giveNickname",
-          log: false
-        },
-        */
       ]
     })
     this.task = {
@@ -50,68 +50,55 @@ export class OpenIdtoId extends plugin {
   }
 
   async startOpenid () {
-    Bot.pickGroup(group).sendMsg([segment.at(QQBot_qq),'开始转换qq号'])
-  }
-
-  async giveNickname (e) {
-    if (IdtoQQ[e.self_id])
-      if (!IdtoQQ[e.self_id][e.user_id])
-        try{
-          Bot.pickGroup(group).sendMsg([segment.at(QQBot_qq),`自动转换qq号${e.user_id}`])
-        } catch (error) {}
-    return false
+    for(let self_id in QQBot_qq){
+      Bot.pickGroup(group).sendMsg([segment.at(QQBot_qq[self_id]),'开始更新qq号'])
+      await sleep(5 * 60 * 1000)
+    }
   }
 
   async sendOpenid_auto (e) {
     const openid = e.msg.replace(/^#?自动转换(qq|QQ)号/,'')
-    await this.reply(`${prefix}对应关系\r${openid}<@${openid.replace(`${e.self_id}-`,'')}>`)
-    await sleep(Delay_ms)
-    await this.reply(`${prefix}对应关系发送完成${e.self_id}`)
+    await this.reply([`${prefix}对应关系\r${openid}`,segment.at(openid)])
   }
 
   async sendOpenid (e){
-    let today = new Date().getTime()
-    today = new Date(today - 1 * 24 * 60 * 60 * 1000).toLocaleDateString()
-    const data = fs.readFileSync(`${folderPath}user_id.yaml`, 'utf8')
-    let user_list = yaml.parse(data)
-    user_list = user_list[today]
-    let msg = `${prefix}对应关系`
-    let i = 0
-    for (const openid of user_list){
-      if(openid.match(`${e.self_id}-`)){
-        msg = msg + `\r${openid}<@${openid.replace(`${e.self_id}-`,'')}>`
-        i++
-        if(i == 50){
-          this.reply(msg)
-          msg = `${prefix}对应关系`
-          i = 0
-          await sleep(Delay_ms)
-        }
-      }
+    const limit = 50  // 一次更新50个用户
+    let today = new Date()
+    const DATE = today.setDate(today.getDate() - 1)  // 固定更新前一天活跃的用户信息
+    /** 固定根据日期和self_id筛选 */
+    const where = { 
+      DATE,  // 如果希望每次都更新全部用户，注释本行
+      self_id: e.self_id 
     }
-    await this.reply(msg)
-    await sleep(Delay_ms)
-    await this.reply(`${prefix}对应关系发送完成${e.self_id}`)
+    const cnt = await  Openid.UserDAU.count({ where })  // 获取需要更新的数目
+    for(let offset = 0; offset < cnt; offset += limit){  // offset为偏移量
+      const users = await Openid.UserDAU.findAll({
+        limit,
+        offset,
+        order: [ [ 'createdAt', 'DESC' ] ], // 按照createdAt字段降序排列
+        where
+      })
+      let msg = [`${prefix}对应关系\r`]
+      users.forEach(user => {
+        msg.push(user.user_id)
+        msg.push(segment.at(user.user_id))
+      })
+      await this.reply(msg)
+      await sleep(Delay_ms)
+    }
   }
 
   async writeOpenid (e) {
-    if (e.msg.match(/对应关系发送完成/)){
-      const self_id = e.msg.replace(/对应关系发送完成/,'')
-      const filePath = `${folderPath}QQBotRelation/${self_id}.yaml`
-      fs.writeFileSync(filePath, yaml.stringify(IdtoQQ[self_id]), 'utf8')
-      this.reply(`写入对应关系${filePath}`)
-      return
-    }
-    for (let openid = 1; openid < e.message.length; openid+=2) {
-      let id = e.message[openid].text
-      .replace(`对应关系`, '')
-      .replace(`\r`, '')
-      .replace(`\n`, '')
-      .replace(` `, '')
-      let self_id = id.split('-')[0]
-      IdtoQQ[self_id][id] = {}
-      IdtoQQ[self_id][id].qq = e.message[openid + 1].qq
-      IdtoQQ[self_id][id].nickname = e.message[openid + 1].text.replace(/^\@/, '')
+    for (let openid = 1; openid < e.message.length - 3; openid += 2) {
+      const user_id = e.message[openid].text.replace(/(#|\/)?对应关系/, '').trim()
+      const self_id = user_id.split('-')[0]
+      const updatedData = {
+        user_id,
+        qq: Number(e.message[openid + 1].qq),
+        nickname: e.message[openid + 1].text.replace(/^\@/, '').replace(/\\/g,''),
+        self_id
+      }
+      Openid.UpdateUser(updatedData)
     }
   }
 }
