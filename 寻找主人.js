@@ -19,17 +19,13 @@ export class find_Master extends plugin {
         msg.push(`我的主人是`)
         for(let master of Cfg.masterQQ) 
             switch (e?.adapter){
-                case undefined: if(typeof master == "number") msg.push(segment.at(+master)); break;
                 case 'WeXin':
                 case 'ComWeChat': if(typeof master == "string" && master.match(/^wxid_/)) msg.push(segment.at(master)); break;
                 case 'QQGuild': if(typeof master == "string" && master.match(/^qg_/)) msg.push(segment.at(master)); break;
-                case 'QQBot': if(typeof master == "string" && master.match(`${e.self_id}-`)) msg.push(`<@${master.replace(`${e.self_id}-`,'')}>`); break;
-                default: break;
+                case 'QQBot': if(typeof master == "string" && master.match(`${e.self_id}-`)) msg.push(segment.at(master)); break;
+                default: if(typeof master == "number") msg.push(segment.at(+master)); break;
             }
-        if(msg == `我的主人是`)
-            await this.reply("暂无主人或不支持的适配器")
-        else
-            await this.reply(msg)
+        await this.reply(msg)
         return;
     }
 }
